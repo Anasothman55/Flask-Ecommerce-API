@@ -1,0 +1,1 @@
+from app.routes.Category import blp as CategoryBlueprint
