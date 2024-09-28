@@ -8,3 +8,5 @@ passlib
 flask-migrate
 flask-cors
 pytz
+ulid
+psycopg2

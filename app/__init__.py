@@ -6,12 +6,20 @@ from app.extensions import db, cors
 from app.config import Config
 from app.routes import CategoryBlueprint
 
-def create_app(db_url= None):
+def create_app():
     app = Flask(__name__)
     app.config.from_object(Config)
 
     base_dir = os.path.abspath(os.path.dirname(__file__))
-    app.config["SQLALCHEMY_DATABASE_URI"] = db_url or os.getenv("DATABASE_URL", f"sqlite:///{os.path.join(base_dir, 'data.db')}")
+
+    DB_USERNAME = os.getenv('DB_USERNAME', 'postgres')
+    DB_PASSWORD = os.getenv('DB_PASSWORD', 'pandoraherts')
+    DB_HOST = os.getenv('DB_HOST', 'localhost')
+    DB_PORT = os.getenv('DB_PORT', '5432')
+    DB_NAME = os.getenv('DB_NAME', 'flask_Eccommers')
+
+    DATABASE_URL = f"postgresql://{DB_USERNAME}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
+    app.config["SQLALCHEMY_DATABASE_URI"] = DATABASE_URL
 
     # Initialize extensions
     db.init_app(app)
@@ -19,7 +27,6 @@ def create_app(db_url= None):
     api = Api(app)
     
     cors.init_app(app)
-
 
     with app.app_context():
       db.create_all()

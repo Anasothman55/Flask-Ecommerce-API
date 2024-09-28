@@ -37,7 +37,7 @@ class CategoryList(MethodView):
     return category, 201
 
 
-@blp.route("/category/<int:category_id>")
+@blp.route("/category/<string:category_id>")
 class Category(MethodView):
 
   @blp.response(200, CategorySchema)
