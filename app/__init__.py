@@ -13,7 +13,7 @@ def create_app():
     base_dir = os.path.abspath(os.path.dirname(__file__))
 
     DB_USERNAME = os.getenv('DB_USERNAME', 'postgres')
-    DB_PASSWORD = os.getenv('DB_PASSWORD', 'pandoraherts')
+    DB_PASSWORD = os.getenv('DB_PASSWORD', 'devolopserver')
     DB_HOST = os.getenv('DB_HOST', 'localhost')
     DB_PORT = os.getenv('DB_PORT', '5432')
     DB_NAME = os.getenv('DB_NAME', 'flask_Eccommers')

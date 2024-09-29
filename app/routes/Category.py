@@ -5,6 +5,7 @@ from app.schema import CategorySchema, UpdateCategorySchema
 from app.model import CategoryModel
 from app.extensions import db
 from sqlalchemy.exc import SQLAlchemyError,IntegrityError
+from sqlalchemy import desc
 
 blp = Blueprint("categorys", __name__, description="Operation on category")
 
@@ -16,7 +17,7 @@ class CategoryList(MethodView):
   @blp.response(201, CategorySchema(many=True))
   def get(self):
     
-    categori = CategoryModel.query.all()
+    categori = CategoryModel.query.order_by(desc(CategoryModel.updated_at)).all()
     return categori
 
   

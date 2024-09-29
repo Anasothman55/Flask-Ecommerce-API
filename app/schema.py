@@ -20,3 +20,8 @@ class UpdateCategorySchema(Schema):
 
 class CategorySchema(PlainCategorySchema):
   pass
+
+
+
+
+#devolopserver
