@@ -1,4 +1,4 @@
-from flask import request
+from flask import request,jsonify
 from flask.views import MethodView
 from flask_smorest import Blueprint, abort
 from app.schema import CategorySchema, UpdateCategorySchema
@@ -6,6 +6,7 @@ from app.model import CategoryModel
 from app.extensions import db
 from sqlalchemy.exc import SQLAlchemyError,IntegrityError
 from sqlalchemy import desc
+from flask_jwt_extended import jwt_required, get_jwt_identity
 
 blp = Blueprint("categorys", __name__, description="Operation on category")
 
@@ -17,15 +18,16 @@ class CategoryList(MethodView):
   @blp.response(201, CategorySchema(many=True))
   def get(self):
     
-    categori = CategoryModel.query.order_by(desc(CategoryModel.updated_at)).all()
-    return categori
+    categories = CategoryModel.query.order_by(desc(CategoryModel.updated_at)).all()
+    return jsonify([category.to_dict() for category in categories])
 
-  
+  @jwt_required(fresh=True)
   @blp.arguments(CategorySchema)
   @blp.response(201, CategorySchema)
   def post(self, cate_data):
 
-    category = CategoryModel(**cate_data)
+    user_id = get_jwt_identity()
+    category = CategoryModel(user_id=user_id,**cate_data)
 
     try:
       db.session.add(category)
