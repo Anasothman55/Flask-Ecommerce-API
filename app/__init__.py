@@ -6,6 +6,8 @@ from flask_migrate import Migrate
 from app.extensions import db, cors
 from app.config import Config
 from app.routes import CategoryBlueprint,UserBlueprint
+from app.model import BlackListModel
+
 
 def create_app():
     app = Flask(__name__)
@@ -65,6 +67,13 @@ def create_app():
         ),
         401,
       )
+
+    @jwt.token_in_blocklist_loader
+    def check_if_token_revoked(jwt_header, jwt_payload: dict) -> bool:
+        jti = jwt_payload["jti"]
+        token = db.session.query(BlackListModel.id).filter_by(jti=jti).scalar()
+        return token is not None
+
 
     @jwt.unauthorized_loader
     def missing_token_callback(error):

@@ -17,6 +17,10 @@ class CategoryModel(db.Model):
   
   user = db.relationship("UserModel", back_populates="categories")
 
+
+
+
+
 class UserModel(db.Model):
   __tablename__ = "users"
 
@@ -36,3 +40,14 @@ class UserModel(db.Model):
   # Check if the entered password is correct
   def check_password(self, password):
     return check_password_hash(self.password, password) 
+
+
+class BlackListModel(db.Model):
+  __tablename__ = "token_blocklist"
+
+  id = db.Column(db.Integer, primary_key=True)
+  jti = db.Column(db.String(36), nullable=False, unique=True)
+  created_at = db.Column(db.DateTime, nullable=False, default = datetime.now)
+
+  def __repr__(self):
+      return f"<TokenBlocklist {self.jti}>"

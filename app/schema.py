@@ -38,7 +38,7 @@ class PlainUserSchema(Schema):
   email = fields.Email(required=True, validate=validate.Length(max=256))
   password1 = fields.Str(required=True, validate=validate.Length(min=8, max=128), load_only=True)
   password2 = fields.Str(required=True, validate=validate.Length(min=8, max=128), load_only=True)
-  role = fields.Str()
+  role = fields.Str(load_only=True)
   created_at = fields.DateTime(dump_only=True)
   updated_at = fields.DateTime(dump_only=True)
   category = fields.List(fields.Nested(PlainCategorySchema()), dump_only=True)
@@ -109,3 +109,18 @@ class ChangeUserPasswordSchema(Schema):
 class UserSchema(PlainUserSchema):
   pass
 
+class LoginSchema(Schema):
+  email = fields.Email(required=True, validate=validate.Length(max=256))
+  password1 = fields.Str(required=True, validate=validate.Length(min=8, max=128), load_only=True)
+
+  def validate_password1(self, value):
+    # Use the same password validation logic from PlainUserSchema
+    plain_schema = PlainUserSchema()
+    plain_schema.context = self.context  # Pass along the context if needed
+    return plain_schema.validate_password(value)
+
+  def validate_email(self, value):
+    # Use the same email validation logic from PlainUserSchema
+    plain_schema = PlainUserSchema()
+    plain_schema.context = self.context  # Pass along the context if needed
+    return plain_schema.validate_email(value)

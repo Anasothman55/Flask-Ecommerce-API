@@ -19,7 +19,7 @@ class CategoryList(MethodView):
   def get(self):
     
     categories = CategoryModel.query.order_by(desc(CategoryModel.updated_at)).all()
-    return jsonify([category.to_dict() for category in categories])
+    return categories
 
   @jwt_required(fresh=True)
   @blp.arguments(CategorySchema)
