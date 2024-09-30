@@ -5,8 +5,8 @@ import os
 from flask_migrate import Migrate
 from app.extensions import db, cors
 from app.config import Config
-from app.routes import CategoryBlueprint,UserBlueprint
-from app.model import BlackListModel
+from app.routes import CategoryBlueprint,UserBlueprint,AdminBlueprint
+from app.model import BlackListModel,UserModel
 
 
 def create_app():
@@ -48,9 +48,12 @@ def create_app():
 
     @jwt.additional_claims_loader
     def add_claims_to_jwt(identity):
-      if identity == 1:
+      user = UserModel.query.get(identity)
+
+      if user and user.role == "admin":
         return {"is_admin": True}
       return {"is_admin": False}
+    
 
     @jwt.expired_token_loader
     def expired_token_callback(jwt_header, jwt_payload):
@@ -94,5 +97,6 @@ def create_app():
     # Register Blueprints
     api.register_blueprint(CategoryBlueprint)
     api.register_blueprint(UserBlueprint)
+    api.register_blueprint(AdminBlueprint)
 
     return app

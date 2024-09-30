@@ -10,11 +10,11 @@ def validate_no_numbers(value):
     raise ValidationError("Category name must not contain numbers")
 
 class PlainCategorySchema(Schema):
-  id = fields.Str(dump_only=True)
+  id = fields.UUID(dump_only=True)
   name = fields.Str(required=True, validate=[validate.Length(min=3, max=50), validate_no_numbers])
   created_at = fields.DateTime(dump_only=True)
   updated_at = fields.DateTime(dump_only=True)
-  #? user_id = fields.UUID(required=True)  
+  #user_id = fields.UUID(dump_only=True)  
     
   user = fields.Nested('PlainUserSchema', only=('username',), dump_only=True)
 
@@ -124,3 +124,30 @@ class LoginSchema(Schema):
     plain_schema = PlainUserSchema()
     plain_schema.context = self.context  # Pass along the context if needed
     return plain_schema.validate_email(value)
+
+
+
+
+class AdminCategorySchema(Schema):
+  id = fields.UUID(dump_only=True)
+  name = fields.Str(required=True, validate=[validate.Length(min=3, max=50), validate_no_numbers])
+
+
+class AdminUserSchema(Schema):
+  id = fields.UUID(dump_only=True)
+  username = fields.Str(dump_only=True)
+  email = fields.Email(dump_only=True)
+  role = fields.Str(dump_only=True)  # Assuming you want to show the user's role
+  created_at = fields.DateTime(dump_only=True)
+  updated_at = fields.DateTime(dump_only=True)
+
+  categories = fields.List(fields.Nested(AdminCategorySchema), dump_only=True)
+
+
+class InfoCategorySchema(AdminCategorySchema):
+  created_at = fields.DateTime(dump_only=True)
+  updated_at = fields.DateTime(dump_only=True)
+
+
+class InfoUserSchema(AdminUserSchema):
+  categories = fields.List(fields.Nested(InfoCategorySchema), dump_only=True)

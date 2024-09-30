@@ -1,11 +1,14 @@
 from flask import request,jsonify
 from flask.views import MethodView
 from flask_smorest import Blueprint, abort
-from app.schema import UserSchema, ChangeUserPasswordSchema, LoginSchema
+from app.schema import UserSchema, ChangeUserPasswordSchema, LoginSchema,InfoUserSchema
 from app.model import UserModel,BlackListModel
 from app.extensions import db
 from flask_jwt_extended import create_access_token, create_refresh_token,jwt_required,get_jwt_identity,get_jwt
 from werkzeug.security import generate_password_hash, check_password_hash
+from datetime import timedelta
+from sqlalchemy.orm import joinedload
+
 
 blp = Blueprint("users", __name__, description="Operation on auth")
 
@@ -34,7 +37,7 @@ class UserRegister(MethodView):
 
 
 @blp.route("/login")
-class UserRegister(MethodView):
+class UserLogin(MethodView):
   
   @blp.arguments(LoginSchema)
   def post(self, user_data):
@@ -49,8 +52,11 @@ class UserRegister(MethodView):
     if not check_password_hash(user.password, user_data["password1"]):
       abort(401, message="Invalid password.")
 
-    access_token = create_access_token(identity=user.id, fresh=True)
-    refresh_token = create_refresh_token(user.id)
+    access_token_expires = timedelta(minutes=30)  # Access token expires in 30 minutes
+    refresh_token_expires = timedelta(days=7)  # Refresh token expires in 7 days
+    
+    access_token = create_access_token(identity=user.id, fresh=True, expires_delta=access_token_expires)
+    refresh_token = create_refresh_token(user.id, expires_delta=refresh_token_expires)
 
     return {
       "access_token": access_token, 
@@ -60,14 +66,14 @@ class UserRegister(MethodView):
     
 
 @blp.route("/user-info")
-class UserRegister(MethodView):
+class UserInfo(MethodView):
     
   @jwt_required()
-  @blp.response(200, UserSchema)
+  @blp.response(200, InfoUserSchema(many=True))
   def get(self):
     user_identity = get_jwt_identity()  # Get the current user's identity from the JWT
-    user = UserModel.query.filter_by(id=user_identity).first()  # Or query by username/email if that's stored inthe token
-
+    user = UserModel.query.filter_by(id=user_identity).options(joinedload(UserModel.categories)).all() # Or query by username/email if that's stored inthe token
+   
     if not user:
         abort(404, message="User not found.")
 

@@ -13,3 +13,4 @@ class Config:
   OPENAPI_SWAGGER_UI_URL = "https://cdn.jsdelivr.net/npm/swagger-ui-dist/"
   SQLALCHEMY_TRACK_MODIFICATIONS = False
   JWT_SECRET_KEY = "3406857207503645503"
+  SECRET_KEY = "72346hugdwtyfc2q65h2o36743"

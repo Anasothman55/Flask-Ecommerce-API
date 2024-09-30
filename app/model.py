@@ -31,7 +31,7 @@ class UserModel(db.Model):
   role = db.Column(db.String(20), default = "user")
   created_at = db.Column(db.DateTime, default = datetime.now)
   updated_at = db.Column(db.DateTime, default=datetime.now, onupdate=datetime.now)
-  categories = db.relationship("CategoryModel", back_populates="user", lazy="dynamic", cascade="all, delete-orphan")
+  categories = db.relationship("CategoryModel", back_populates="user", cascade="all, delete-orphan")
 
     # Hash the password before saving
   def set_password(self, password):
