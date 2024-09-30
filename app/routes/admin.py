@@ -27,5 +27,34 @@ class Admin(MethodView):
     
     users = UserModel.query.options(joinedload(UserModel.categories)).all()
     return users
+  
+
+@blp.route("/admin/user-info/<uuid:user_id>")
+class Admin(MethodView):
+
+  #users = UserModel.query.options(joinedload(UserModel.categories)).get_or_404(user_id)
+  @blp.response(200, AdminUserSchema)
+  def get(self, user_id):
+    users = UserModel.query.options(joinedload(UserModel.categories)).get_or_404(user_id)
+    return users
+
+  @jwt_required()
+  def delete(self, user_id):
+
+    jwt = get_jwt()
+    
+    if not jwt.get("is_admin"):
+      abort(401, message="Admin privilege required")
+    
+    users = UserModel.query.get_or_404(user_id)
+
+    if users.role == "admin":
+      abort(401, message="you can't delete admin")
+
+    
+    db.session.delete(users)
+    db.session.commit()
+    return {"message": "User deleted."}, 200
+    
 
 

@@ -128,6 +128,9 @@ class LoginSchema(Schema):
 
 
 
+
+#? admin schema
+
 class AdminCategorySchema(Schema):
   id = fields.UUID(dump_only=True)
   name = fields.Str(required=True, validate=[validate.Length(min=3, max=50), validate_no_numbers])
