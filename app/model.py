@@ -6,7 +6,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 
 
 class CategoryModel(db.Model):
-  __tablename__ = "categorys"
+  __tablename__ = "categories"
 
   id = db.Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)  # Use UUID as primary key
 
@@ -16,10 +16,24 @@ class CategoryModel(db.Model):
   user_id = db.Column(UUID(as_uuid=True), db.ForeignKey("users.id"))
   
   user = db.relationship("UserModel", back_populates="categories")
+  topics = db.relationship("TopicModel", back_populates="categories", cascade="all, delete-orphan")
 
 
+class TopicModel(db.Model):
+  __tablename__ = "topics"
 
+  id = db.Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)  # Use UUID as primary key
 
+  name = db.Column(db.String(80), nullable = False)
+  created_at = db.Column(db.DateTime, default = datetime.now)
+  updated_at = db.Column(db.DateTime, default=datetime.now, onupdate=datetime.now)
+  category_id = db.Column(UUID(as_uuid=True), db.ForeignKey("categories.id"))
+  user_id = db.Column(UUID(as_uuid=True), db.ForeignKey("users.id"))
+  
+  user = db.relationship("UserModel", back_populates="topics")
+  categories = db.relationship("CategoryModel", back_populates="topics")
+
+  __table_args__ = (db.UniqueConstraint('name', 'category_id', name='uq_topic_name_category'),)
 
 class UserModel(db.Model):
   __tablename__ = "users"
@@ -31,7 +45,9 @@ class UserModel(db.Model):
   role = db.Column(db.String(20), default = "user")
   created_at = db.Column(db.DateTime, default = datetime.now)
   updated_at = db.Column(db.DateTime, default=datetime.now, onupdate=datetime.now)
+
   categories = db.relationship("CategoryModel", back_populates="user", cascade="all, delete-orphan")
+  topics = db.relationship("TopicModel", back_populates="user", cascade="all, delete-orphan")
 
     # Hash the password before saving
   def set_password(self, password):

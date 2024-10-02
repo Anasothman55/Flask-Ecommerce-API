@@ -18,14 +18,14 @@ class PlainCategorySchema(Schema):
     
   user = fields.Nested('PlainUserSchema', only=('username',), dump_only=True)
 
-
 class UpdateCategorySchema(Schema):
   name = fields.Str(required=True, validate=[validate.Length(min=3, max=50), validate_no_numbers])
 
 class CategorySchema(PlainCategorySchema):
   pass
 
-
+class CategoryTopicSchema(PlainCategorySchema):
+  topics = fields.List(fields.Nested('AdminTopicSchema', dump_only=True))
 
 
 #? schema for user
@@ -129,12 +129,50 @@ class LoginSchema(Schema):
 
 
 
+#? schema for topic
+
+def validate_no_numbers(value):
+  if any(char.isdigit() for char in value):
+    raise ValidationError("Topic name must not contain numbers")
+
+class PlainTopicSchema(Schema):
+  id = fields.UUID(dump_only=True)
+  name = fields.Str(required=True, validate=[validate.Length(min=3, max=50), validate_no_numbers])
+  created_at = fields.DateTime(dump_only=True)
+  updated_at = fields.DateTime(dump_only=True)
+  #user_id = fields.UUID(dump_only=True)  
+  category_id = fields.UUID(required=True)  
+    
+  user = fields.Nested('PlainUserSchema', only=('username',), dump_only=True)
+  categories = fields.Nested('PlainCategorySchema', only=('name',), dump_only=True)
+
+class UpdateTopicSchema(Schema):
+  name = fields.Str(required=True, validate=[validate.Length(min=3, max=50), validate_no_numbers])
+  category_id = fields.UUID(required=True)  
+
+class TopicSchema(PlainTopicSchema):
+  pass
+
+
+
+
+
+
 #? admin schema
 
 class AdminCategorySchema(Schema):
   id = fields.UUID(dump_only=True)
   name = fields.Str(required=True, validate=[validate.Length(min=3, max=50), validate_no_numbers])
+  categories = fields.Nested('PlainCategorySchema', only=('name',), dump_only=True)
 
+class AdminTopicSchema(Schema):
+  id = fields.UUID(dump_only=True)
+  name = fields.Str(required=True, validate=[validate.Length(min=3, max=50), validate_no_numbers])
+
+#? this are special
+class TopicResponseSchema(Schema):
+  topic_count = fields.Int()
+  topics = fields.Nested(AdminTopicSchema(many=True))
 
 class AdminUserSchema(Schema):
   id = fields.UUID(dump_only=True)

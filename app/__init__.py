@@ -5,7 +5,7 @@ import os
 from flask_migrate import Migrate
 from app.extensions import db, cors
 from app.config import Config
-from app.routes import CategoryBlueprint,UserBlueprint,AdminBlueprint
+from app.routes import CategoryBlueprint,UserBlueprint,AdminBlueprint,TopicBlueprint
 from app.model import BlackListModel,UserModel
 
 
@@ -98,5 +98,6 @@ def create_app():
     api.register_blueprint(CategoryBlueprint)
     api.register_blueprint(UserBlueprint)
     api.register_blueprint(AdminBlueprint)
+    api.register_blueprint(TopicBlueprint)
 
     return app

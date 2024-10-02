@@ -35,7 +35,6 @@ class UserRegister(MethodView):
     return {"message": "User created successfully."}, 201
 
 
-
 @blp.route("/login")
 class UserLogin(MethodView):
   
@@ -52,7 +51,7 @@ class UserLogin(MethodView):
     if not check_password_hash(user.password, user_data["password1"]):
       abort(401, message="Invalid password.")
 
-    access_token_expires = timedelta(minutes=30)  # Access token expires in 30 minutes
+    access_token_expires = timedelta(minutes=120)  # Access token expires in 120 minutes
     refresh_token_expires = timedelta(days=7)  # Refresh token expires in 7 days
     
     access_token = create_access_token(identity=user.id, fresh=True, expires_delta=access_token_expires)
@@ -69,15 +68,17 @@ class UserLogin(MethodView):
 class UserInfo(MethodView):
     
   @jwt_required()
-  @blp.response(200, InfoUserSchema(many=True))
   def get(self):
-    user_identity = get_jwt_identity()  # Get the current user's identity from the JWT
-    user = UserModel.query.filter_by(id=user_identity).options(joinedload(UserModel.categories)).all() # Or query by username/email if that's stored inthe token
+    user_identity = get_jwt()  # Get the current user's identity from the JWT
+    user = UserModel.query.filter_by(id=user_identity['sub']).options(joinedload(UserModel.categories)).all() # 
    
     if not user:
         abort(404, message="User not found.")
-
-    return user 
+    
+    if user_identity.get('is_admin'):
+      return InfoUserSchema(many=True).dump(user), 200  # Use InfoUserSchema for admins
+    else:
+      return UserSchema(many=True).dump(user), 200  # Use UserSchema for regular users
 
 
 @blp.route("/logout")
