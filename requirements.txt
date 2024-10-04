@@ -10,3 +10,4 @@ flask-cors
 pytz
 ulid
 psycopg2
+flask-mail

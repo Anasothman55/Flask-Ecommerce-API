@@ -3,11 +3,12 @@ from flask_smorest import Api
 from flask_jwt_extended import JWTManager
 import os
 from flask_migrate import Migrate
-from app.extensions import db, cors
+from app.extensions import db, cors,mail
 from app.config import Config
 from app.routes import CategoryBlueprint,UserBlueprint,AdminBlueprint,TopicBlueprint
 from app.model import BlackListModel,UserModel
-
+import logging
+from logging.handlers import RotatingFileHandler
 
 def create_app():
     app = Flask(__name__)
@@ -29,14 +30,10 @@ def create_app():
     migrate = Migrate(app, db)
     api = Api(app)
     cors.init_app(app)
+    mail.init_app(app)
 
     jwt = JWTManager(app)
 
-
-    # @jwt.token_in_blocklist_loader
-    # def check_if_token_in_blocklist(jwt_header, jwt_payload):
-    #   return jwt_payload["jti"] in BLOCKLIST
-    
     @jwt.revoked_token_loader
     def revoked_token_callback(jwt_header, jwt_payload):
       return (
@@ -99,5 +96,19 @@ def create_app():
     api.register_blueprint(UserBlueprint)
     api.register_blueprint(AdminBlueprint)
     api.register_blueprint(TopicBlueprint)
+
+
+    if not app.debug:
+      if not os.path.exists('logs'):
+          os.mkdir('logs')
+      file_handler = RotatingFileHandler('logs/app.log', maxBytes=10240, backupCount=10)
+      file_handler.setFormatter(logging.Formatter(
+          '%(asctime)s %(levelname)s: %(message)s [in %(pathname)s:%(lineno)d]'
+      ))
+      file_handler.setLevel(logging.INFO)
+      app.logger.addHandler(file_handler)
+
+      app.logger.setLevel(logging.INFO)
+      app.logger.info('Application startup')
 
     return app

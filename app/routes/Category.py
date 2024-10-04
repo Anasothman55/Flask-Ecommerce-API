@@ -1,13 +1,14 @@
-from flask import request,jsonify
+from flask import request,jsonify,current_app
 from flask.views import MethodView
 from flask_smorest import Blueprint, abort
-from app.schema import CategorySchema, UpdateCategorySchema,AdminCategorySchema,CategoryTopicSchema
+from app.schema import CategorySchema,UpdateCategorySchema,AdminCategorySchema,CategoryTopicSchema,GetAllCategorySchema
 from app.model import CategoryModel
 from app.extensions import db
 from sqlalchemy.exc import SQLAlchemyError,IntegrityError
 from sqlalchemy import desc
 from flask_jwt_extended import jwt_required, get_jwt_identity,get_jwt
 from sqlalchemy.orm import joinedload
+from app.decorators import verify_email_required
 
 
 blp = Blueprint("categorys", __name__, description="Operation on category")
@@ -16,11 +17,11 @@ blp = Blueprint("categorys", __name__, description="Operation on category")
 @blp.route("/category")
 class CategoryList(MethodView):
 
-  @blp.response(201, AdminCategorySchema(many=True))
+  @blp.response(201, GetAllCategorySchema)
   def get(self):
-    
     categories = CategoryModel.query.order_by(desc(CategoryModel.updated_at)).all()
-    return categories
+
+    return {"categories": categories}
 
   @jwt_required(fresh=True)
   @blp.arguments(CategorySchema(many=True))
@@ -53,7 +54,6 @@ class CategoryList(MethodView):
 
     return created_categories, 201
 
-
 def fordelete(category):
   category_name = category.name
   try:
@@ -62,31 +62,6 @@ def fordelete(category):
   except SQLAlchemyError:
       abort(500, message="An error occurred while deleting category")
   return {"message": f"The category {category_name} was deleted"}
-
-# @blp.route("/category/<uuid:category_id>")
-# class Category(MethodView):
-
-#   @blp.response(200, CategorySchema)
-#   def get(self,category_id):
-
-#     ctegory = CategoryModel.query.get_or_404(category_id)
-#     return ctegory
-  
-#   @jwt_required(fresh=True)
-#   def delete(self, category_id):
-
-#     user_id = get_jwt_identity()
-#     category = CategoryModel.query.get_or_404(category_id)
-
-#     jwt = get_jwt()
-
-#     if jwt.get("is_admin"):
-#       return fordelete(category)
-
-#     if user_id != category.user_id:
-#       abort(403, message="You are not authorized to delete this category")
-
-#     return fordelete(category)
 
 @blp.route("/category/<uuid:category_id>")
 class Category(MethodView):
