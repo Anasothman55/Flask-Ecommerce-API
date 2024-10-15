@@ -2,7 +2,7 @@ from flask import request,jsonify
 from flask.views import MethodView
 from marshmallow import fields
 from flask_smorest import Blueprint, abort
-from app.schema import CategorySchema, UpdateCategorySchema,TopicSchema,TopicResponseSchema,UpdateTopicSchema
+from app.schema import TopicSchema,TopicResponseSchema,UpdateTopicSchema
 from app.model import CategoryModel,TopicModel
 from app.extensions import db
 from sqlalchemy.exc import SQLAlchemyError,IntegrityError

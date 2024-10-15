@@ -1,7 +1,7 @@
 from flask import request,jsonify,current_app
 from flask.views import MethodView
 from flask_smorest import Blueprint, abort
-from app.schema import CategorySchema,UpdateCategorySchema,AdminCategorySchema,CategoryTopicSchema,GetAllCategorySchema
+from app.schema import CategorySchema,UpdateCategorySchema,CategoryTopicSchema,GetAllCategorySchema
 from app.model import CategoryModel
 from app.extensions import db
 from sqlalchemy.exc import SQLAlchemyError,IntegrityError

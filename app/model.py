@@ -6,8 +6,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 import jwt
 from flask import current_app
 from time import time
-import random
-import string
+
 
 class CategoryModel(db.Model):
   __tablename__ = "categories"
@@ -36,8 +35,70 @@ class TopicModel(db.Model):
   
   user = db.relationship("UserModel", back_populates="topics")
   categories = db.relationship("CategoryModel", back_populates="topics")
-
+  products = db.relationship("ProductTopicModel", back_populates="topic")  # Updated many-to-many relationship
   __table_args__ = (db.UniqueConstraint('name', 'category_id', name='uq_topic_name_category'),)
+
+
+class BrandModel(db.Model):
+  __tablename__ = "brands"
+
+  id = db.Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)  # Use UUID as primary key
+  name = db.Column(db.String(80), unique=True, nullable = False)
+  created_at = db.Column(db.DateTime, default = datetime.now)
+  updated_at = db.Column(db.DateTime, default=datetime.now, onupdate=datetime.now)
+  user_id = db.Column(UUID(as_uuid=True), db.ForeignKey("users.id"))
+  
+  user = db.relationship("UserModel", back_populates="brands")
+  series = db.relationship("SeriesModel", back_populates="brands", cascade="all, delete-orphan")
+
+
+class SeriesModel(db.Model):
+  __tablename__ = "series"
+
+  id = db.Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)  # Use UUID as primary key
+
+  name = db.Column(db.String(80), nullable = False)
+  created_at = db.Column(db.DateTime, default = datetime.now)
+  updated_at = db.Column(db.DateTime, default=datetime.now, onupdate=datetime.now)
+  brand_id = db.Column(UUID(as_uuid=True), db.ForeignKey("brands.id"))
+  user_id = db.Column(UUID(as_uuid=True), db.ForeignKey("users.id"))
+  
+  user = db.relationship("UserModel", back_populates="series")
+  brands = db.relationship("BrandModel", back_populates="series")
+  products = db.relationship("ProductModel", back_populates="series", cascade="all, delete-orphan")
+
+
+
+class ProductModel(db.Model):
+  __tablename__ = "products"
+
+  id = db.Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)  # Use UUID as primary key
+
+  name = db.Column(db.String(80), nullable = False)
+  created_at = db.Column(db.DateTime, default = datetime.now)
+  updated_at = db.Column(db.DateTime, default=datetime.now, onupdate=datetime.now)
+  price = db.Column(db.Numeric(12, 2), nullable=False)  # Decimal for price (10 digits, 2 decimal places)
+  description = db.Column(db.Text, nullable=True)  # TEXT for long product description
+  stock_quantity = db.Column(db.Integer, nullable=False, default=0)  # Integer for stock count
+  specific_attributes = db.Column(db.JSON, nullable=True) 
+  series_id = db.Column(UUID(as_uuid=True), db.ForeignKey("series.id"))
+  topic_ids = db.Column(UUID(as_uuid=True), db.ForeignKey("topics.id"))#this for many to many
+  user_id = db.Column(UUID(as_uuid=True), db.ForeignKey("users.id"))
+
+  
+  user = db.relationship("UserModel", back_populates="products")
+  series = db.relationship("SeriesModel", back_populates="products")
+  topics = db.relationship("ProductTopicModel", back_populates="product")  # Updated many-to-many relationship
+
+
+class ProductTopicModel(db.Model):
+  __tablename__ = "product_topics"
+
+  product_id = db.Column(UUID(as_uuid=True), db.ForeignKey("products.id"), primary_key=True)
+  topic_id = db.Column(UUID(as_uuid=True), db.ForeignKey("topics.id"), primary_key=True)
+
+  product = db.relationship("ProductModel", back_populates="topics")  # Back reference to ProductModel
+  topic = db.relationship("TopicModel", back_populates="products")  
 
 class UserModel(db.Model):
   __tablename__ = "users"
@@ -53,6 +114,9 @@ class UserModel(db.Model):
 
   categories = db.relationship("CategoryModel", back_populates="user", cascade="all, delete-orphan")
   topics = db.relationship("TopicModel", back_populates="user", cascade="all, delete-orphan")
+  brands = db.relationship("BrandModel", back_populates="user", cascade="all, delete-orphan")
+  series = db.relationship("SeriesModel", back_populates="user", cascade="all, delete-orphan")
+  products = db.relationship("ProductModel", back_populates="user", cascade="all, delete-orphan")
 
     # Hash the password before saving
   def set_password(self, password):
@@ -104,3 +168,6 @@ class BlackListModel(db.Model):
 
   def __repr__(self):
       return f"<TokenBlocklist {self.jti}>"
+  
+
+

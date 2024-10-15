@@ -45,21 +45,21 @@ class UserRegister(MethodView):
 
 @blp.route("/verify/<string:token>")
 class EmailVerification(MethodView):
-    def get(self, token):
-        try:
-            print(f"Received token for verification: {token}")
-            user = UserModel.verify_email_token(token)
-            if not user:
-                return {"message": "Invalid or expired token."}, 400
-            if user.email_verified:
-                return {"message": "Email already verified."}, 200
-            user.email_verified = True
-            db.session.commit()
-            return {"message": "Email verified successfully."}, 200
-        except Exception as e:
-            db.session.rollback()
-            print(f"Error during email verification: {str(e)}")
-            return {"message": f"An error occurred during verification: {str(e)}"}, 500
+  def get(self, token):
+    try:
+      print(f"Received token for verification: {token}")
+      user = UserModel.verify_email_token(token)
+      if not user:
+          return {"message": "Invalid or expired token."}, 400
+      if user.email_verified:
+          return {"message": "Email already verified."}, 200
+      user.email_verified = True
+      db.session.commit()
+      return {"message": "Email verified successfully."}, 200
+    except Exception as e:
+      db.session.rollback()
+      print(f"Error during email verification: {str(e)}")
+      return {"message": f"An error occurred during verification: {str(e)}"}, 500
 
 
 @blp.route("/resend-verification")

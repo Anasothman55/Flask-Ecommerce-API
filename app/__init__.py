@@ -5,7 +5,7 @@ import os
 from flask_migrate import Migrate
 from app.extensions import db, cors,mail
 from app.config import Config
-from app.routes import CategoryBlueprint,UserBlueprint,AdminBlueprint,TopicBlueprint
+from app.routes import CategoryBlueprint,UserBlueprint,AdminBlueprint,TopicBlueprint,BrandBlueprint
 from app.model import BlackListModel,UserModel
 import logging
 from logging.handlers import RotatingFileHandler
@@ -96,6 +96,7 @@ def create_app():
     api.register_blueprint(UserBlueprint)
     api.register_blueprint(AdminBlueprint)
     api.register_blueprint(TopicBlueprint)
+    api.register_blueprint(BrandBlueprint)
 
 
     if not app.debug:

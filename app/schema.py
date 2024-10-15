@@ -162,12 +162,41 @@ class UpdateTopicSchema(Schema):
   name = fields.Str(required=True, validate=[validate.Length(min=3, max=50), validate_no_numbers])
   category_id = fields.UUID(required=True)  
 
+class TopicResponseSchema(Schema):
+  topic_count = fields.Int()
+  topics = fields.List(fields.Nested('TopicSchema',only=('name', 'id'),dump_only=True))
+
 class TopicSchema(PlainTopicSchema):
   pass
 
 
+#? schema for Brands
 
+def validate_no_numbers(value):
+  if any(char.isdigit() for char in value):
+    raise ValidationError("Topic name must not contain numbers")
 
+class PlainBrandSchema(Schema):
+  id = fields.UUID(dump_only=True)
+  name = fields.Str(required=True, validate=[validate.Length(min=2, max=50), validate_no_numbers])
+  created_at = fields.DateTime(dump_only=True)
+  updated_at = fields.DateTime(dump_only=True)
+  user_id = fields.UUID(dump_only=True)  
+    
+  user = fields.Nested('PlainUserSchema', only=('username',), dump_only=True)
+
+class UpdateBrandSchema(Schema):
+  name = fields.Str(required=True, validate=[validate.Length(min=2, max=50), validate_no_numbers]) 
+
+class BrandResponseSchema(Schema):
+  Series_count = fields.Int()
+  series = fields.List(fields.Nested('TopicSchema',only=('name', 'id'),dump_only=True))
+
+class GetAllBrandSchema(Schema):
+  brands = fields.Nested('PlainBrandSchema',many=True, only=('name', 'id'), dump_only=True)
+
+class BrandSchema(PlainBrandSchema):
+  pass
 
 
 #? admin schema
@@ -175,20 +204,6 @@ class TopicSchema(PlainTopicSchema):
 class AdminCategorySchema(Schema):
   id = fields.UUID(dump_only=True)
   name = fields.Str(required=True, validate=[validate.Length(min=3, max=50), validate_no_numbers])
-  categories = fields.Nested('PlainCategorySchema', only=('name',), dump_only=True)
-
-class AdminTopicSchema(Schema):
-  id = fields.UUID(dump_only=True)
-  name = fields.Str(required=True, validate=[validate.Length(min=3, max=50), validate_no_numbers])
-
-class AdminTopicSchema2(AdminTopicSchema):
-  created_at = fields.DateTime(dump_only=True)
-  updated_at = fields.DateTime(dump_only=True)
-
-#? this are special
-class TopicResponseSchema(Schema):
-  topic_count = fields.Int()
-  topics = fields.Nested(AdminTopicSchema(many=True))
 
 class AdminUserSchema(Schema):
   id = fields.UUID(dump_only=True)
@@ -198,19 +213,15 @@ class AdminUserSchema(Schema):
   created_at = fields.DateTime(dump_only=True)
   updated_at = fields.DateTime(dump_only=True)
   email_verified = fields.Boolean(dump_only=True)
-  categories = fields.List(fields.Nested(AdminCategorySchema), dump_only=True)
+  #categories = fields.List(fields.Nested(AdminCategorySchema), dump_only=True)
 
-
-class InfoCategorySchema(AdminCategorySchema):
-  created_at = fields.DateTime(dump_only=True)
-  updated_at = fields.DateTime(dump_only=True)
 
 class AdminCategoryTopicSchema(AdminCategorySchema):
   created_at = fields.DateTime(dump_only=True)
   updated_at = fields.DateTime(dump_only=True)
+  topics = fields.List(fields.Nested('PlainTopicSchema', only=('id','name','created_at','updated_at',), dump_only=True))
 
-  topics = fields.List(fields.Nested('AdminTopicSchema2', dump_only=True))
 
 class InfoUserSchema(AdminUserSchema):
   categories = fields.List(fields.Nested(AdminCategoryTopicSchema), dump_only=True)
-  #topics = fields.List(fields.Nested(AdminTopicSchema), dump_only=True)
+
