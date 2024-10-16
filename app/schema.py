@@ -199,6 +199,89 @@ class BrandSchema(PlainBrandSchema):
   pass
 
 
+#? schema for series
+
+def validate_no_numbers(value):
+  if any(char.isdigit() for char in value):
+    raise ValidationError("Topic name must not contain numbers")
+
+class PlainSeriesSchema(Schema):
+  id = fields.UUID(dump_only=True)
+  name = fields.Str(required=True, validate=[validate.Length(min=3, max=50), validate_no_numbers])
+  created_at = fields.DateTime(dump_only=True)
+  updated_at = fields.DateTime(dump_only=True)
+  #user_id = fields.UUID(dump_only=True)  
+  #brand_id = fields.UUID(dump_only=True)  
+    
+  user = fields.Nested('PlainUserSchema', only=('username',), dump_only=True)
+  brands = fields.Nested('PlainBrandSchema', only=('name',), dump_only=True)
+
+class UpdateSeriesSchema(Schema): 
+  name = fields.Str(required=True, validate=[validate.Length(min=2, max=50), validate_no_numbers])
+  brand_id = fields.UUID(required=False)
+class SeriesResponseSchema(Schema):
+  topic_count = fields.Int()
+  Series = fields.List(fields.Nested('TopicSchema',only=('name', 'id'),dump_only=True))
+
+class GetAllSeriesSchema(Schema):
+  id = fields.UUID(dump_only=True)
+  name = fields.Str(dump_only=True)
+
+class SeriesSchema(PlainSeriesSchema):
+  pass
+
+
+class PlainProductSchema(Schema):
+  id = fields.UUID(dump_only=True)
+  name = fields.Str(required=True, validate=validate.Length(min=3, max=50))
+  created_at = fields.DateTime(dump_only=True)
+  updated_at = fields.DateTime(dump_only=True)
+  price = fields.Decimal(required=True)
+  description = fields.Str(validate=[validate.Length(max=1000)], allow_none=True)
+  stock_quantity = fields.Int(required = True)
+  specific_attributes = fields.Dict(allow_none=True)
+  series_id = fields.UUID(required=True)  # Must provide the series ID
+  topic_ids = fields.List(fields.UUID(), required=True,load_only=True)  # List of topics
+    
+  user = fields.Nested('PlainUserSchema', only=('username',), dump_only=True)
+  series = fields.Nested('PlainSeriesSchema', only=('name',), dump_only=True)
+  topics = fields.List(fields.Nested('PlainTopicSchema', only=('name',)), dump_only=True)
+# class UpdateSeriesSchema(Schema): 
+#   name = fields.Str(required=True, validate=[validate.Length(min=2, max=50), validate_no_numbers])
+#   brand_id = fields.UUID(required=False)
+# class SeriesResponseSchema(Schema):
+#   topic_count = fields.Int()
+#   Series = fields.List(fields.Nested('TopicSchema',only=('name', 'id'),dump_only=True))
+
+# class GetAllSeriesSchema(Schema):
+#   id = fields.UUID(dump_only=True)
+#   name = fields.Str(dump_only=True)
+
+class ProductSchema(PlainProductSchema):
+  pass
+
+
+class ProductTopicSchema(Schema):
+  topic_id = fields.UUID(dump_only=True)
+
+class ProductWithTopicSchema(Schema):
+  id = fields.UUID(dump_only=True)
+  name = fields.Str(required=True)
+  created_at = fields.DateTime(dump_only=True)
+  updated_at = fields.DateTime(dump_only=True)
+  price = fields.Decimal(required=True)
+  description = fields.Str(validate=[validate.Length(max=1000)], allow_none=True)
+  stock_quantity = fields.Int(required=True)
+  specific_attributes = fields.Dict(allow_none=True)
+
+  # Related fields
+  user = fields.Nested('PlainUserSchema', only=('username',), dump_only=True)
+  series = fields.Nested('PlainSeriesSchema', only=('name',), dump_only=True)
+
+  # Topics field, listing topics associated with the product
+  topics = fields.List(fields.Nested('PlainTopicSchema', only=('name',)), dump_only=True)
+
+
 #? admin schema
 
 class AdminCategorySchema(Schema):

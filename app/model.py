@@ -35,7 +35,7 @@ class TopicModel(db.Model):
   
   user = db.relationship("UserModel", back_populates="topics")
   categories = db.relationship("CategoryModel", back_populates="topics")
-  products = db.relationship("ProductTopicModel", back_populates="topic")  # Updated many-to-many relationship
+  products = db.relationship("ProductModel", secondary="product_topics", back_populates="topics")
   __table_args__ = (db.UniqueConstraint('name', 'category_id', name='uq_topic_name_category'),)
 
 
@@ -57,7 +57,7 @@ class SeriesModel(db.Model):
 
   id = db.Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)  # Use UUID as primary key
 
-  name = db.Column(db.String(80), nullable = False)
+  name = db.Column(db.String(80),unique=True, nullable = False)
   created_at = db.Column(db.DateTime, default = datetime.now)
   updated_at = db.Column(db.DateTime, default=datetime.now, onupdate=datetime.now)
   brand_id = db.Column(UUID(as_uuid=True), db.ForeignKey("brands.id"))
@@ -72,33 +72,30 @@ class SeriesModel(db.Model):
 class ProductModel(db.Model):
   __tablename__ = "products"
 
-  id = db.Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)  # Use UUID as primary key
+  id = db.Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)  
 
   name = db.Column(db.String(80), nullable = False)
   created_at = db.Column(db.DateTime, default = datetime.now)
   updated_at = db.Column(db.DateTime, default=datetime.now, onupdate=datetime.now)
-  price = db.Column(db.Numeric(12, 2), nullable=False)  # Decimal for price (10 digits, 2 decimal places)
-  description = db.Column(db.Text, nullable=True)  # TEXT for long product description
-  stock_quantity = db.Column(db.Integer, nullable=False, default=0)  # Integer for stock count
+  price = db.Column(db.Numeric(12, 2), nullable=False)  
+  description = db.Column(db.Text, nullable=True) 
+  stock_quantity = db.Column(db.Integer, nullable=False, default=0)  
   specific_attributes = db.Column(db.JSON, nullable=True) 
   series_id = db.Column(UUID(as_uuid=True), db.ForeignKey("series.id"))
-  topic_ids = db.Column(UUID(as_uuid=True), db.ForeignKey("topics.id"))#this for many to many
   user_id = db.Column(UUID(as_uuid=True), db.ForeignKey("users.id"))
-
+  
+  image_path = db.Column(db.String(256), nullable=True)
   
   user = db.relationship("UserModel", back_populates="products")
   series = db.relationship("SeriesModel", back_populates="products")
-  topics = db.relationship("ProductTopicModel", back_populates="product")  # Updated many-to-many relationship
+  topics = db.relationship("TopicModel", secondary="product_topics", back_populates="products") 
 
 
 class ProductTopicModel(db.Model):
-  __tablename__ = "product_topics"
+   __tablename__ = "product_topics"
 
-  product_id = db.Column(UUID(as_uuid=True), db.ForeignKey("products.id"), primary_key=True)
-  topic_id = db.Column(UUID(as_uuid=True), db.ForeignKey("topics.id"), primary_key=True)
-
-  product = db.relationship("ProductModel", back_populates="topics")  # Back reference to ProductModel
-  topic = db.relationship("TopicModel", back_populates="products")  
+   product_id = db.Column(UUID(as_uuid=True), db.ForeignKey("products.id"), primary_key=True)
+   topic_id = db.Column(UUID(as_uuid=True), db.ForeignKey("topics.id"), primary_key=True)
 
 class UserModel(db.Model):
   __tablename__ = "users"
